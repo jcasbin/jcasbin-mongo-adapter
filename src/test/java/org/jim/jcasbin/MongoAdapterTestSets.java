@@ -4,12 +4,14 @@ import org.casbin.jcasbin.main.Enforcer;
 import org.casbin.jcasbin.persist.Adapter;
 import org.casbin.jcasbin.util.Util;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -85,7 +87,7 @@ public class MongoAdapterTestSets {
 
         // Because AutoSave is enabled, the policy change not only affects the policy in Casbin enforcer,
         // but also affects the policy in the storage.
-        e.addPolicy("cathy", "data1", "read");
+        assertTrue(e.addPolicy("cathy", "data1", "read"));
         testEnforce(e, "cathy", "data1", "read", true);
 
         // Reload the policy from the storage to see the effect.
@@ -95,12 +97,61 @@ public class MongoAdapterTestSets {
         testEnforce(e, "cathy", "data1", "read", true);
 
         // Remove the added rule.
-        e.removePolicy("cathy", "data1", "read");
+        assertTrue(e.removePolicy("cathy", "data1", "read"));
         testEnforce(e, "cathy", "data1", "read", false);
 
         // Reload the policy from the storage to see the effect.
         e.clearPolicy();
         a.loadPolicy(e.getModel());
         testEnforce(e, "cathy", "data1", "read", false);
+    }
+
+    static void testBatchAddAndRemovePolicies(MongoAdapter a) {
+        Enforcer e = new Enforcer("examples/rbac_model.conf", a);
+        testEnforce(e, "cathy", "data1", "read", false);
+        testEnforce(e, "jane", "data2", "read", false);
+
+        // AutoSave is enabled by default.
+        // It can be disabled by:
+        // e.enableAutoSave(false);
+
+        // Because AutoSave is enabled, the policy change not only affects the policy in Casbin enforcer,
+        // but also affects the policy in the storage.
+        List<String> policy1 = new ArrayList<String>() {{
+            add("cathy");
+            add("data1");
+            add("read");
+        }};
+        List<String> policy2 = new ArrayList<String>() {{
+            add("jane");
+            add("data2");
+            add("read");
+        }};
+        List<List<String>> policies = new ArrayList<List<String>>() {{
+            add(policy1);
+            add(policy2);
+        }};
+
+        assertTrue(e.addPolicies(policies));
+        testEnforce(e, "cathy", "data1", "read", true);
+        testEnforce(e, "jane", "data2", "read", true);
+
+        // Reload the policy from the storage to see the effect.
+        e.clearPolicy();
+        a.loadPolicy(e.getModel());
+        // The policy has a new rule: {"cathy", "data1", "read"}.
+        testEnforce(e, "cathy", "data1", "read", true);
+        testEnforce(e, "jane", "data2", "read", true);
+
+        // Remove the added rule.
+        assertTrue(e.removePolicies(policies));
+        testEnforce(e, "cathy", "data1", "read", false);
+        testEnforce(e, "jane", "data2", "read", false);
+
+        // Reload the policy from the storage to see the effect.
+        e.clearPolicy();
+        a.loadPolicy(e.getModel());
+        testEnforce(e, "cathy", "data1", "read", false);
+        testEnforce(e, "jane", "data2", "read", false);
     }
 }

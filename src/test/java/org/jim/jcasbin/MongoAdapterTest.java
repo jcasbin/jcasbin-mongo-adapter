@@ -19,6 +19,7 @@ public class MongoAdapterTest {
         for (MongoAdapter a : adapters) {
             MongoAdapterTestSets.testAdapter(a);
             MongoAdapterTestSets.testAddAndRemovePolicy(a);
+            MongoAdapterTestSets.testBatchAddAndRemovePolicies(a);
         }
     }
 
