@@ -7,6 +7,7 @@ import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.casbin.jcasbin.model.Assertion;
 import org.casbin.jcasbin.model.Model;
 import org.casbin.jcasbin.persist.Adapter;
 import org.jim.jcasbin.domain.CasbinRule;
@@ -91,7 +92,14 @@ public class MongoAdapter implements Adapter {
     @Override
     public void loadPolicy(Model model) {
         Map<String, ArrayList<ArrayList<String>>> policies = this.loading();
-        policies.keySet().forEach(k -> model.model.get(k.substring(0, 1)).get(k).policy.addAll(policies.get(k)));
+        policies.keySet()
+                .forEach(k -> {
+                    Assertion assertion = model.model.get(k.substring(0, 1)).get(k);
+                    for (ArrayList<String> policy : policies.get(k)) {
+                        assertion.policy.add(policy);
+                        assertion.policyIndex.put(policy.toString(), assertion.policy.size() - 1);
+                    }
+        });
     }
 
     Map<String, ArrayList<ArrayList<String>>> loading() {
