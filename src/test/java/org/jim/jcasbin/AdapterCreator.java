@@ -2,6 +2,12 @@ package org.jim.jcasbin;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import de.flapdoodle.embed.mongo.commands.ServerAddress;
+import de.flapdoodle.embed.mongo.transitions.Mongod;
+import de.flapdoodle.embed.mongo.transitions.RunningMongodProcess;
+import de.flapdoodle.reverse.TransitionWalker;
+
+import static de.flapdoodle.embed.mongo.distribution.Version.Main.V6_0;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,17 +21,22 @@ public interface AdapterCreator {
 
     void close();
 
-    class MongoAdapterCreator implements AdapterCreator,AutoCloseable {
-        MongoClient mongoClient = MongoClients.create("mongodb://172.16.5.168:20000,172.16.2.80:20000,172.16.6.228:20000/zhangji");
-        @Override
-        public MongoAdapter create() throws Exception {
+    class MongoAdapterCreator implements AdapterCreator, AutoCloseable {
+        MongoClient mongoClient = null;
 
+        @Override
+        public MongoAdapter create() {
+            TransitionWalker.ReachedState<RunningMongodProcess> running = Mongod.instance().start(V6_0);
+            ServerAddress serverAddress = running.current().getServerAddress();
+            MongoClient mongoClient = MongoClients.create("mongodb://" + serverAddress);
             return new MongoAdapter(mongoClient, "zhangji");
         }
 
         @Override
         public void close() {
-            mongoClient.close();
+            if (mongoClient != null) {
+                mongoClient.close();
+            }
         }
     }
 }
