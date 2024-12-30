@@ -85,8 +85,8 @@ public class MongoAdapter implements BatchAdapter {
     }
 
     /**
-     * 从存储加载所有策略规则
-     * 加载时会合并重复数据
+     * Loads all policy rules from the storage.
+     * Duplicates are merged during loading.
      *
      * @param model the model.
      */
@@ -112,7 +112,7 @@ public class MongoAdapter implements BatchAdapter {
                 .collect(Collectors.toMap(
                         x -> x.get(0), y -> {
                             ArrayList<ArrayList<String>> lists = new ArrayList<>();
-                            // 去除list第一项策略类型
+                            // Remove the first item (policy type) from the list
                             y.remove(0);
                             lists.add(y);
                             return lists;
@@ -124,8 +124,8 @@ public class MongoAdapter implements BatchAdapter {
     }
 
     /**
-     * 将所有策略规则保存到存储
-     * 保存时会合并重复数据
+     * Saves all policy rules to the storage.
+     * Duplicates are merged during saving.
      *
      * @param model the model.
      */
@@ -137,7 +137,7 @@ public class MongoAdapter implements BatchAdapter {
     }
 
     /**
-     * 将策略规则添加到存储
+     * Adds a policy rule to the storage.
      *
      * @param sec   the section, "p" or "g".
      * @param ptype the policy type, "p", "p2", .. or "g", "g2", ..
@@ -160,7 +160,7 @@ public class MongoAdapter implements BatchAdapter {
     }
 
     /**
-     * 从存储中删除策略规则
+     * Removes a policy rule from the storage.
      *
      * @param sec   the section, "p" or "g".
      * @param ptype the policy type, "p", "p2", .. or "g", "g2", ..
@@ -186,7 +186,7 @@ public class MongoAdapter implements BatchAdapter {
     }
 
     /**
-     * 从存储中删除当前策略指定索引后匹配的数据
+     * Removes policy rules that match the specified field index and values from the storage.
      *
      * @param sec         the section, "p" or "g".
      * @param ptype       the policy type, "p", "p2", .. or "g", "g2", ..
